@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Charity Water Maze</title>
+  <link rel="stylesheet" href="p4css.css" />
+</head>
+<body>
+  <!-- Logo -->
+  <img id="logo" src="charity-water-logo-png_seeklogo-618081.png" alt="Charity Water Logo" />
+
+  <h1>Water Drop Maze Save the Clean Water!</h1>
+
+  <!-- Score + Timer -->
+  <div id="status-top">
+    <div><strong>Score:</strong> <span id="score">0</span></div>
+    <div><strong>Time:</strong> <span id="timer">0</span> sec</div>
+  </div>
+
+  <div id="game-container"></div>
+
+  <div id="controls">
+    <button onclick="move('up')">⬆️</button><br />
+    <button onclick="move('left')">⬅️</button>
+    <button onclick="move('down')">⬇️</button>
+    <button onclick="move('right')">➡️</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    const gridSize = 7;
+    const gameContainer = document.getElementById("game-container");
+    let playerPosition = { x: 0, y: 0 };
+    let score = 0;
+    const scoreDisplay = document.getElementById("score");
+
+    // Timer setup
+    const timerDisplay = document.getElementById("timer");
+    let seconds = 0;
+    const timer = setInterval(() => {
+      seconds++;
+      timerDisplay.textContent = seconds;
+    }, 1000);
+
+    const map = [
+      ["", "", "", "POLLUTED", "", "STAR", ""],
+      ["", "POLLUTED", "", "", "POLLUTED", "", ""],
+      ["STAR", "", "", "POLLUTED", "", "", "STAR"],
+      ["", "", "POLLUTED", "", "STAR", "", ""],
+      ["", "STAR", "", "", "", "POLLUTED", ""],
+      ["POLLUTED", "", "POLLUTED", "", "", "", "STAR"],
+      ["", "", "", "STAR", "POLLUTED", "", "GOAL"]
+    ];
+
+    function drawGrid() {
+      gameContainer.innerHTML = "";
+      for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+
+          let content = "";
+
+          if (x === playerPosition.x && y === playerPosition.y) {
+            content = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+              <path fill="#003366" d="M32 2C32 2 8 26 8 44s10.7 18 24 18 24-2 24-18S32 2 32 2z"/>
+            </svg>`;
+          } else {
+            const tile = map[y][x];
+            if (tile === "POLLUTED") {
+              content = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+                <path fill="black" d="M32 2C32 2 8 26 8 44s10.7 18 24 18 24-2 24-18S32 2 32 2z"/>
+              </svg>`;
+            } else if (tile === "STAR") {
+              content = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+                <path fill="#FFC907" d="M32 2l9 18 20 3-14 14 3 20-18-9-18 9 3-20L3 23l20-3z"/>
+              </svg>`;
+            } else if (tile === "GOAL") {
+              content = `<img src="https://cdn-icons-png.flaticon.com/512/124/124043.png" width="28" alt="Goal"/>`;
+            }
+          }
+
+          cell.innerHTML = content;
+          gameContainer.appendChild(cell);
+        }
+      }
+    }
+
+    function move(direction) {
+      let { x, y } = playerPosition;
+      if (direction === "up" && y > 0) y--;
+      else if (direction === "down" && y < gridSize - 1) y++;
+      else if (direction === "left" && x > 0) x--;
+      else if (direction === "right" && x < gridSize - 1) x++;
+
+      const tile = map[y][x];
+      if (tile === "POLLUTED") {
+        alert("⚠️ Game Over! You hit polluted water.");
+        location.reload();
+        return;
+      } else if (tile === "STAR") {
+        score += 10;
+        map[y][x] = "";
+      } else if (tile === "GOAL") {
+        clearInterval(timer); // stop timer
+        confetti(); // 🎉 show confetti
+        setTimeout(() => {
+          alert("🎉 You win!\nScore: " + score + "\nTime: " + seconds + " seconds");
+          location.reload();
+        }, 200);
+        return;
+      }
+
+      playerPosition = { x, y };
+      drawGrid();
+      scoreDisplay.textContent = score;
+    }
+
+    drawGrid();
+  </script>
+</body>
+</html>
